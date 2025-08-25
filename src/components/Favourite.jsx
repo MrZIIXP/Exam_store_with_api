@@ -1,20 +1,16 @@
 import { Empty } from 'antd'
-import { useAtom } from 'jotai'
 import { useEffect, useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom'
 import { Navigation } from 'swiper/modules'
 import { Swiper, SwiperSlide } from 'swiper/react'
-import { Account, Favorite } from '../jotai/Acc'
 import { Add_to_Cart, Get_product } from '../redux/Api'
 import { ProductCard } from './Home'
 import { LoadingOutlined } from '@ant-design/icons'
 
 const Favourite = () => {
-	const [fav, setFav] = useAtom(Favorite)
-	const { data_products, product_loading, add_to_cart_loading, error } = useSelector(state => state.Market)
+	const { data_products, account: acc, product_loading, add_to_cart_loading, error, favourite: fav } = useSelector(state => state.Market)
 	const dispatch = useDispatch()
-	const [acc] = useAtom(Account)
 	const navigate = useNavigate()
 
 	useEffect(() => {

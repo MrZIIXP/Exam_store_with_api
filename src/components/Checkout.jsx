@@ -2,14 +2,11 @@ import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom'
 import { _set_massanges, _set_unreaded_message, Delete_All_from_Cart, Get_Cart } from '../redux/Api'
-import { Account } from '../jotai/Acc'
-import { useAtom } from 'jotai'
 import { useForm } from 'react-hook-form'
 
 const Checkout = () => {
-	const { data_cart, cart_loading, messages, unreaded_message } = useSelector(state => state.Market)
+	const { data_cart, account: acc, cart_loading, messages, unreaded_message } = useSelector(state => state.Market)
 	const dispatch = useDispatch()
-	const [acc] = useAtom(Account)
 	const navigate = useNavigate()
 	const [save, setSave] = React.useState(false)
 	const [data, setData] = React.useState(null)
@@ -56,12 +53,11 @@ const Checkout = () => {
 		}
 		if (data_cart) {
 			const check = data_cart[0]
-			const text = `Вы заказали продукты в общей сумме $${check?.totalPrice - check?.totalDiscountPrice} в них включались ${check?.productsInCart?.slice(0, -1).map(item => `${item?.product?.productName} в количестве ${item?.quantity}`).join(", ")} и ${check?.productsInCart[check?.productsInCart?.length - 1]?.product.productName} в количестве ${check?.productsInCart[check?.productsInCart?.length - 1]?.quantity}. Благодарим вас за покупку.`
+			const text = `Вы заказали продукты в общей сумме $${check?.totalPrice - check?.totalDiscountPrice} на ${data.firstName} ${data.lastName} в них включались ${check?.productsInCart?.slice(0, -1).map(item => `${item?.product?.productName} в количестве ${item?.quantity}`).join(", ")} и ${check?.productsInCart[check?.productsInCart?.length - 1]?.product.productName} в количестве ${check?.productsInCart[check?.productsInCart?.length - 1]?.quantity}.Товар прийдёт через 3 дня на адрес: Город ${data.city}, улица ${data.address}, этаж-дом ${data.Apartment}. Мы пришлём сообщение по почте ${data.email}. Благодарим вас за покупку.`
 			const mess = JSON.parse(localStorage.getItem("messages")) || []
-			localStorage.setItem("messages", JSON.stringify([...mess, { text: text, read: false }]))
-			dispatch(_set_massanges([...messages, { text: text, read: false }]))
-			dispatch(_set_unreaded_message(unreaded_message + 1))
-			dispatch(Delete_All_from_Cart()).then(() => { navigate("/") })
+			localStorage.setItem("messages", JSON.stringify([...mess, { text: text, read: false, date: Date.now() }]))
+			dispatch(_set_massanges([...messages, { text: text, read: false, date: Date.now() }]))
+			dispatch(Delete_All_from_Cart()).then(() => { navigate("/") }).then(() => { setTimeout(() => dispatch(_set_unreaded_message(unreaded_message + 1)), 500) })
 		}
 	}
 
@@ -158,8 +154,8 @@ const Checkout = () => {
 					<div className='w-full flex flex-col text-center max-h-[270px] overflow-y-auto' style={{ scrollbarColor: "transparent transparent" }}>
 						{!cart_loading && data ? data?.productsInCart?.map(item => {
 							return (
-								<div className='py-2 flex w-full items-center'>
-									<div className='text-start w-[50%]'><div className='flex items-center gap-2 max-w-[190px]'><img src={"http://37.27.29.18:8002/images/" + item?.product?.image} className='size-[50px]' alt="" /> <p>{item?.product?.productName}</p></div></div>
+								<div key={item?.product?.id} className='py-2 flex w-full items-center'>
+									<div className='text-start w-[50%]'><div className='flex items-center gap-2 max-w-[190px]'><img src={import.meta.env.VITE_API_BASE_URL + "images/" + item?.product?.image} className='size-[50px]' alt="" /> <p>{item?.product?.productName}</p></div></div>
 									<div className='w-[20%] text-end'>{item?.quantity}</div>
 									<div className='w-[30%] flex justify-end'>${item?.quantity * item?.product?.price}</div>
 								</div>

@@ -11,6 +11,12 @@ import Favourite from './components/Favourite'
 import By_Id from './components/By_Id'
 import Cart from './components/Cart'
 import Checkout from './components/Checkout'
+import Contact from './components/Contact'
+import Account from './components/Accaunt'
+import AdminUsers from './components/AdmiUser'
+import AdminLayout from './components/AdminLayout'
+import AdminDashboard from './components/AdminDashboard'
+import AdminProducts from './components/AdminProducts'
 
 const App = () => {
 	const router = createBrowserRouter([{
@@ -35,19 +41,19 @@ const App = () => {
 			},
 			{
 				path: "contact",
-				element: <h1>Contact</h1>
+				element: <Contact />
 			},
 			{
 				path: "cart/checkout",
-				element: <Checkout/>
+				element: <Checkout />
 			},
 			{
 				path: "favourite",
-				element: <Favourite/>
+				element: <Favourite />
 			},
 			{
 				path: "/cart",
-				element: <Cart/>
+				element: <Cart />
 			},
 			{
 				path: "products",
@@ -55,11 +61,37 @@ const App = () => {
 			},
 			{
 				path: "products/:id",
-				element: <By_Id/>
+				element: <By_Id />
 			},
 			{
 				path: "*",
 				element: <Error />
+			},
+			{
+				path: "account",
+				element: <Account />
+			},
+			{
+				path: "admin/",
+				element: <AdminLayout />,
+				children: [
+					{
+						index: true,
+						element: <AdminDashboard />
+					},
+					{
+						path: "users",
+						element: <AdminUsers />
+					},
+					{
+						path: "*",
+						element: <Error />
+					},
+					{
+						path: "products",
+						element: <AdminProducts/>
+					}
+				]
 			}
 		]
 	}

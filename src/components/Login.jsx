@@ -4,16 +4,20 @@ import { API } from '../config'
 import { useState } from 'react'
 
 const Login = () => {
-	const navigate = useNavigate()
 	const [isLoading, setLoading] = useState(false)
 
 	async function login(userName, password) {
 		setLoading(true)
 		try {
 			const res = await API.post("Account/login", { userName, password })
-
 			if (res.data.data) {
 				localStorage.setItem("account", res.data.data)
+				const { data } = await API.get(
+					`UserProfile/get-user-profiles?UserName=${userName}`
+				)
+				console.log(data.data)
+				const user = data.data.find(item => item.userName === userName.toLowerCase())
+				localStorage.setItem("user", user?.userId)
 				window.location.href = "/"
 			}
 			return res.data
@@ -38,7 +42,7 @@ const Login = () => {
 	}
 
 	return (
-		<div className='w-full flex flex-col md:py-[60px] items-center py-[150px] bg-white dark:bg-black min-h-screen transition-colors duration-300'>
+		<div className='w-full flex flex-col md:py-[100px] md:px-5 items-center justify-center py-[150px] bg-white dark:bg-black transition-colors duration-300'>
 			<form onSubmit={Log.handleSubmit(onSubmit)} className='grid mx-auto min-w-[420px] md:min-w-full md:px-5 bg-white dark:bg-gray-900 p-8 rounded-lg shadow-lg border border-gray-200 dark:border-gray-800 transition-colors duration-300'>
 				<h1 className='text-[36px] font-semibold md:text-[32px] text-black dark:text-white'>Log in to Exclusive</h1>
 				<p className='text-gray-600 dark:text-gray-400'>Enter your details below</p>

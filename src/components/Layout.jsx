@@ -1,30 +1,32 @@
 import { HeartOutlined, SendOutlined, ShoppingCartOutlined } from '@ant-design/icons'
 import { Drawer, Tooltip } from 'antd'
-import { useAtom } from 'jotai'
-import { BookTextIcon, Facebook, Instagram, Linkedin, LogOut, Menu, MessageCircleWarning, Search, TwitterIcon, User } from 'lucide-react'
+import { BookTextIcon, Facebook, Instagram,PanelLeft, Linkedin, LogOut, Menu, MessageCircleWarning, Search, TwitterIcon, User } from 'lucide-react'
 import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { Link, Outlet, useNavigate } from 'react-router-dom'
-import { Account, Favorite } from '../jotai/Acc'
-import { _set_massanges, _set_unreaded_message, Get_Cart } from '../redux/Api'
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { _fav_reset, _set_massanges, _set_unreaded_message, account_reset, Get_Cart, Get_profile } from '../redux/Api'
 import ThemeToggleButton from './DarkMode'
 
 export default function Layout() {
 	const [open, setOpen] = React.useState(false)
 	const [onPage, setPage] = React.useState("")
-	const [acc, setAcc] = useAtom(Account)
-	const [fav, setFav] = useAtom(Favorite)
-	const { data_cart, messages, unreaded_message } = useSelector(state => state.Market)
+	const { account: acc, data_cart, favourite: fav, messages, unreaded_message, data_profile } = useSelector(state => state.Market)
 	const dispatch = useDispatch()
 	const navigator = useNavigate()
 	const [read, setRead] = React.useState(false)
+	const location = useLocation()
+
 
 	useEffect(() => {
-		setPage(window.location.pathname)
+		setPage(location.pathname)
 		if (acc) {
 			dispatch(Get_Cart())
+			dispatch(Get_profile(localStorage.getItem("user")))
+			if (data_profile) {
+				console.log(data_profile)
+			}
 		}
-	}, [onPage])
+	}, [onPage, location])
 
 	const handleChat = () => {
 		const local = JSON.parse(localStorage.getItem("messages"))
@@ -100,12 +102,13 @@ export default function Layout() {
 							placement="bottomRight"
 							title={
 								<div className='flex flex-col p-3 gap-3 dark:bg-black border border-transparent dark:border-gray-800 rounded-lg'>
-									<button className='flex gap-3 text-[17px] items-center text-white hover:text-red-500 dark:hover:text-red-500'>
+									<Link to={"/account"} className='flex gap-3 text-[17px] items-center text-white hover:text-red-500 dark:hover:text-red-500'>
 										<User /> Account
-									</button>
+									</Link>
 									<button className='flex gap-3 text-[17px] items-center text-white hover:text-red-500 dark:hover:text-red-500'>
 										<BookTextIcon /> My Order
 									</button>
+									{data_profile && !data_profile?.userRoles?.some(item => item.name === "User") && <button className='flex gap-3 text-[17px] items-center text-white hover:text-red-500 dark:hover:text-red-500' onClick={() => { navigator("/admin"), setOpen(false) }}><PanelLeft /> Admin</button>}
 									<Link to={"/favourite"} className='gap-3 text-[17px] items-center text-white hover:text-red-500 dark:hover:text-red-500 hidden md:flex'>
 										<button className='relative'>
 											<HeartOutlined className='text-[20px]' />
@@ -115,7 +118,7 @@ export default function Layout() {
 									</Link>
 									<button
 										className='flex gap-3 text-[17px] items-center text-white hover:text-red-500 dark:hover:text-red-500'
-										onClick={() => { localStorage.clear(), setAcc(null), setFav(null), navigator("/") }}
+										onClick={() => { localStorage.clear(), dispatch(account_reset()), dispatch(_fav_reset()), navigator("/") }}
 									>
 										<LogOut className='rotate-[180deg]' /> Log Out
 									</button>
@@ -140,8 +143,8 @@ export default function Layout() {
 					</p>
 					<button onClick={() => setRead(false)}>X</button>
 				</div>
-				<div className='h-[calc(100%-40px)] pt-5 flex flex-col gap-7 w-full overflow-y-auto ' style={{scrollbarColor: "transparent transparent"}}>
-					{Array.from(messages).reverse()?.map(item =>
+				<div className='h-[calc(100%-40px)] pt-5 flex flex-col gap-7 w-full overflow-y-auto ' style={{ scrollbarColor: "transparent transparent" }}>
+					{Array.from(messages).reverse().map(item =>
 						<div className='text-[14px] dark:bg-gray-800 bg-red-500 text-white rounded-xl w-[90%] mx-auto p-5' key={item.text}>
 							<p>{item.text}</p>
 						</div>

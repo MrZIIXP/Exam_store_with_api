@@ -1,30 +1,24 @@
-import { useAtom } from 'jotai'
 import React, { useEffect, useState } from 'react'
-import { Link, useLocation, useParams } from 'react-router-dom'
-import { Account, Bag, Favorite } from '../jotai/Acc'
+import { Link, useParams } from 'react-router-dom'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import "swiper/swiper-bundle.css"
 import { Image } from 'antd'
 import { HeartFilled, HeartOutlined, LoadingOutlined } from '@ant-design/icons'
-import { Delete, RefreshCcw, Truck } from 'lucide-react'
+import { RefreshCcw, Truck } from 'lucide-react'
 import { MinCard, ProductCard } from './Home'
 import { useDispatch, useSelector } from 'react-redux'
-import { Add_to_Cart, Decriment_into_Cart, Delete_from_Cart, Get_Cart, Get_product, Get_product_by_id, Increment_into_Cart } from '../redux/Api'
+import { _toggle_favourite, Add_to_Cart, Decriment_into_Cart, Delete_from_Cart, Get_Cart, Get_product, Get_product_by_id, Increment_into_Cart } from '../redux/Api'
 
 const By_Id = () => {
 	const { id } = useParams()
 	const dispatch = useDispatch()
-	const { product_loading, increment_loading, decrement_loading,add_to_cart_loading, error, data_products } = useSelector(state => state.Market)
-	const [fav, setFav] = useAtom(Favorite)
-	const [bag, setBag] = useAtom(Bag)
+	const { product_loading, favourite: fav, account: acc, increment_loading, decrement_loading, add_to_cart_loading, error, data_products } = useSelector(state => state.Market)
 	const [favorite, setFavorite] = useState(false)
-	const [cnt, setCnt] = useState(0)
 	const [selectedColor, setSelectedColor] = useState('')
 	const [selectedImage, setSelectedImage] = useState('')
 	const [filtered, setFiltered] = useState([])
 	const [width, setWidth] = useState(window.innerWidth)
 	const [data_product_by_id, setDataProductById] = useState(null)
-	const [acc] = useAtom(Account)
 
 	const Updating = async () => {
 		dispatch(Get_product_by_id(id.split("!")[1])).then((item) => { setDataProductById(item.payload), console.log(item.payload) })
@@ -48,9 +42,6 @@ const By_Id = () => {
 		if (data_products.length <= 0) {
 			dispatch(Get_product())
 		}
-		const savedFavo = JSON.parse(localStorage.getItem('favorite')) || []
-		setFav(savedFavo)
-
 		const handleResize = () => setWidth(window.innerWidth)
 		window.addEventListener('resize', handleResize)
 		return () => window.removeEventListener('resize', handleResize)
@@ -62,41 +53,16 @@ const By_Id = () => {
 			setSelectedImage(firstImage)
 			const isFavorite = fav.some(item => item.id === data_product_by_id.id)
 			setFavorite(isFavorite)
-
-			const itemInBag = bag.find(item =>
-				item.id === data_product_by_id.id &&
-				item.sel_col === (data_product_by_id.color || "")
-			)
-
-			setCnt(itemInBag ? itemInBag.count : 0)
 			const filter = filterProducts()
 			setFiltered(filter)
 		}
-	}, [data_product_by_id, fav, bag])
-
-	useEffect(() => {
-		if (data_product_by_id) {
-			const itemInBag = bag.find(item =>
-				item.id === data_product_by_id.id &&
-				item.sel_col === selectedColor
-			)
-			setCnt(itemInBag ? itemInBag.count : 0)
-		}
-	}, [selectedColor, bag])
+	}, [data_product_by_id, fav])
 
 	const handleToggleFavorite = () => {
 		if (!data_product_by_id) return
-
-		setFav((prev) => {
-			const isAlreadyFavorite = prev.some(item => item.id === data_product_by_id.id)
-			const newFavo = isAlreadyFavorite
-				? prev.filter(item => item.id !== data_product_by_id.id)
-				: [...prev, { productName: data_product_by_id.productName, id: data_product_by_id.id }]
-
-			localStorage.setItem("favorite", JSON.stringify(newFavo))
-			setFavorite(!isAlreadyFavorite)
-			return newFavo
-		})
+		const isFavorite = fav.some(item => item.id === data_product_by_id.id)
+		dispatch(_toggle_favourite({ id: data_product_by_id.id, productName: data_product_by_id.productName, fav: isFavorite }))
+		setFavorite(!isFavorite)
 	}
 
 	if (product_loading && !data_product_by_id || !data_product_by_id) {
@@ -132,14 +98,14 @@ const By_Id = () => {
 								<SwiperSlide
 									onClick={() => setSelectedImage(img.images)}
 									key={ind}
-									className='bg-gray-200 dark:bg-gray-800'
+									className='bg-gray-200'
 								>
-									<div className='w-full flex items-center h-full p-2'>
+									<div className='w-full flex items-center h-full'>
 										<img
-											src={"http://37.27.29.18:8002/images/" + img.images}
+											src={import.meta.env.VITE_API_BASE_URL + "images/" + img.images}
 											onError={(e) => { e.target.src = '/images/image.png' }}
 											alt=""
-											className='w-full mix-blend-multiply object-contain'
+											className='w-full mix-blend-multiply object-contain h-full'
 										/>
 									</div>
 								</SwiperSlide>
@@ -147,11 +113,13 @@ const By_Id = () => {
 						</Swiper>
 					)}
 
-					<div className='md:w-full w-[500px] justify-center bg-gray-200 dark:bg-gray-800 md:-order-1 p-10 flex items-center'>
+					<div className='md:w-full w-[500px] justify-center bg-gray-200 md:-order-1 flex items-center'>
 						<Image
-							src={"http://37.27.29.18:8002/images/" + selectedImage}
+							src={import.meta.env.VITE_API_BASE_URL + "images/" + selectedImage}
 							fallback='/images/image.png'
-							className='w-full h-full object-contain mix-blend-multiply'
+							width={"100%"}
+							height={"100%"}
+							className='object-contain mix-blend-multiply'
 							alt={data_product_by_id?.productName}
 						/>
 					</div>
@@ -168,7 +136,6 @@ const By_Id = () => {
 									</p>
 								)}
 							</span>
-							{/* <p className='text-gray-500 dark:text-gray-400'>{data_product_by_id?.quantity}</p> */}
 						</div>
 
 						<div className='flex gap-4 items-center'>
@@ -204,7 +171,7 @@ const By_Id = () => {
 						)}
 
 						{acc && <div className='flex gap-4 items-center'>
-							{data_product_by_id?.productInfoFromCart?.id != 0 &&
+							{data_product_by_id?.productInMyCart &&
 								<div className='flex items-center border-2 border-gray-300 dark:border-gray-700 rounded-lg'>
 									<button
 										disabled={data_product_by_id?.productInfoFromCart?.quantity <= 1 || decrement_loading}
@@ -228,14 +195,14 @@ const By_Id = () => {
 									</button>
 								</div>
 							}
-							{!data_product_by_id?.productInfoFromCart?.id != 0 ? <MinCard
+							{!data_product_by_id?.productInMyCart ? <MinCard
 								className='w-full py-3 text-center bg-[#db4444] hover:bg-red-600 text-white rounded-md transition-colors duration-300'
 								button={"Add to cart"}
 								text={"Added to bag"}
 								func={() => dispatch(Add_to_Cart(data_product_by_id.id)).then(() => { Updating() })}
 							/> : <MinCard
 								className='w-full py-3 text-center bg-[#db4444] hover:bg-red-600 text-white rounded-md transition-colors duration-300'
-								button={add_to_cart_loading ? <LoadingOutlined spin/> : "Delete from cart"}
+								button={add_to_cart_loading ? <LoadingOutlined spin /> : "Delete from cart"}
 								text={"Deleted from bag"}
 								func={() => { dispatch(Delete_from_Cart(data_product_by_id?.productInfoFromCart?.id)).then(() => { Updating(), console.log(data_product_by_id?.productInfoFromCart) }) }}
 							/>}

@@ -4,7 +4,6 @@ import { Collapse, Slider, Rate, Select, Drawer, Input } from 'antd'
 import { Link } from 'react-router-dom'
 import { ArrowUpOutlined } from '@ant-design/icons'
 import { LucideFilter, LucideMenu, LucideSearch } from 'lucide-react'
-import { Data } from '../jotai/Acc'
 import { useAtom } from 'jotai'
 import { useDispatch, useSelector } from 'react-redux'
 import { _set_brand, Get_Brands, Get_Category, Get_Features, Get_product } from '../redux/Api'
@@ -63,7 +62,7 @@ const FilterSidebar = ({ filters, setFilters }) => {
 			>
 				<Panel className='border-t dark:border-gray-800' style={{ borderRadius: '0px' }} header={<span className="text-[#111827] dark:text-white font-bold">Category</span>} key="1">
 					{data_category.length > 8 && <Input className='mb-5 bg-white dark:bg-gray-800 text-black dark:text-white border-gray-300 dark:border-gray-700' onInput={(e) => setCatal(e.target.value)} />}
-					<div style={{scrollbarColor: "transparent transparent"}} className="flex flex-col max-h-[300px] overflow-y-auto gap-3 text-[#374151] dark:text-gray-400">
+					<div style={{ scrollbarColor: "transparent transparent" }} className="flex flex-col max-h-[300px] overflow-y-auto gap-3 text-[#374151] dark:text-gray-400">
 						{data_category.filter(item => catal.toLowerCase().split(" ").some(word => item.categoryName.toLowerCase().includes(word))).map((label) => {
 							const value = label.categoryName.toLowerCase()
 							const isChecked = filters.categories.includes(value)
@@ -85,7 +84,7 @@ const FilterSidebar = ({ filters, setFilters }) => {
 
 				<Panel className='border-t dark:border-gray-800' style={{ borderRadius: '0px' }} header={<span className="text-[#111827] dark:text-white font-bold">Brands</span>} key="2">
 					{data_brands.length > 7 && <Input className='mb-5 bg-white dark:bg-gray-800 text-black dark:text-white border-gray-300 dark:border-gray-700' onInput={(e) => setBrand(e.target.value)} />}
-					<div style={{scrollbarColor: "transparent transparent"}} className={`flex max-h-[300px] overflow-y-auto flex-col gap-3 text-[#374151] dark:text-gray-400`}>
+					<div style={{ scrollbarColor: "transparent transparent" }} className={`flex max-h-[300px] overflow-y-auto flex-col gap-3 text-[#374151] dark:text-gray-400`}>
 						{data_brands.filter(brands => brand.toLowerCase().split(" ").some(word => brands.brandName.toLowerCase().includes(word))).map((label) => {
 							const value = label.brandName.toLowerCase()
 							const isChecked = filters.brands.includes(value)
@@ -121,7 +120,7 @@ const FilterSidebar = ({ filters, setFilters }) => {
 
 				<Panel className='border-t dark:border-gray-800' style={{ borderRadius: '0px' }} header={<span className="text-[#111827] dark:text-white font-bold">Features</span>} key="3">
 					{data_features.length > 7 && <Input className='mb-5 bg-white dark:bg-gray-800 text-black dark:text-white border-gray-300 dark:border-gray-700' onInput={(e) => setFeat(e.target.value)} />}
-					<div style={{scrollbarColor: "transparent transparent"}} className="flex overflow-y-auto flex-col gap-3 max-h-[300px] text-[#374151] dark:text-gray-400">
+					<div style={{ scrollbarColor: "transparent transparent" }} className="flex overflow-y-auto flex-col gap-3 max-h-[300px] text-[#374151] dark:text-gray-400">
 						{data_features.filter(feature => feat.toLowerCase().split(" ").some(word => feature.subCategoryName.toLowerCase().includes(word))).map((label) => {
 							const value = label.subCategoryName.toLowerCase()
 							const isChecked = filters.features.includes(value)
@@ -260,11 +259,6 @@ const Products = () => {
 				return false
 			}
 
-			// if (filters.brands.length > 0 &&
-			// 	!filters.brands.includes(product.brandName.toLowerCase())) {
-			// 	return false
-			// }
-
 			if (product.price < filters.priceRange[0] ||
 				product.price > filters.priceRange[1]) {
 				return false
@@ -281,7 +275,7 @@ const Products = () => {
 					case 'price':
 						return a.price - b.price
 					case 'new':
-						return (b.hasDiscount ? 1 : 0) - (a.hasDiscount ? 1 : 0)
+						return (b.hasDiscount ? 0 : 1) - (a.hasDiscount ? 0 : 1)
 					case 'popular':
 					default:
 						return b.quantity - a.quantity

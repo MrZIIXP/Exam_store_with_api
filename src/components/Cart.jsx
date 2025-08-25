@@ -1,19 +1,17 @@
 import React, { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Input } from 'antd'
 import { useDispatch, useSelector } from 'react-redux'
 import { Decriment_into_Cart, Delete_All_from_Cart, Delete_from_Cart, Get_Cart, Increment_into_Cart } from '../redux/Api'
-import { Account } from '../jotai/Acc'
-import { useAtom } from 'jotai'
 import { LoadingOutlined } from '@ant-design/icons'
 import { RotateCcw, Trash2 } from 'lucide-react'
 
 const Cart = () => {
 	const navigate = useNavigate()
-	const { error, cart_loading, increment_loading, decrement_loading, delete_loading, delete_all_loading } = useSelector(state => state.Market)
+	const { error, cart_loading, account: acc, increment_loading, decrement_loading, delete_loading, delete_all_loading } = useSelector(state => state.Market)
 	const dispatch = useDispatch()
+	const [price_loaded, setRices] = useState({})
+	const [dels_loaded, setDels] = useState({})
 	const [data, setData] = useState([])
-	const [acc] = useAtom(Account)
 
 	useEffect(() => {
 		if (!acc) {
@@ -66,7 +64,7 @@ const Cart = () => {
 									<div className="flex justify-between md:items-start items-center md:flex-col w-full pr-[40px]">
 										<div className="flex gap-5 items-center md:items-start md:flex-col">
 											<img
-												src={"http://37.27.29.18:8002/images/" + item.product.image}
+												src={import.meta.env.VITE_API_BASE_URL + "images/" + item.product.image}
 												alt=""
 												className="size-[54px] md:size-[60px] object-contain"
 												onError={(e) => { e.target.src = '/placeholder-image.png' }}
@@ -80,18 +78,36 @@ const Cart = () => {
 										<div onClick={(e) => e.stopPropagation()} className='flex items-center border-2 border-gray-300 dark:border-gray-700 rounded-lg'>
 											<button
 												disabled={item.quantity <= 1 || decrement_loading}
-												onClick={() => { item.quantity > 1 && dispatch(Decriment_into_Cart(item.id)).then(() => Updating()) }}
+												onClick={() => {
+													item.quantity > 1 && dispatch(Decriment_into_Cart(item.id)).then(() => {
+														Updating()
+														setRices(prev => {
+															const newState = { ...prev }
+															delete newState[item.product.id]
+															return newState
+														})
+													}), item.quantity > 1 && setRices({ ...price_loaded, [item.product.id]: true })
+												}}
 												className={'flex items-center relative z-40 justify-center group rounded-l-lg active:bg-red-500 size-[30px] py-6 border-r-2 border-gray-300 dark:border-gray-700'}
 											>
-												{decrement_loading ? <LoadingOutlined spin /> : <div className='w-4 h-[2px] bg-black dark:bg-white group-active:bg-white' />}
+												{decrement_loading && price_loaded[item.product.id] ? <LoadingOutlined spin /> : <div className='w-4 h-[2px] bg-black dark:bg-white group-active:bg-white' />}
 											</button>
 											<p className='px-[20px] text-black dark:text-white'>{item.quantity}</p>
 											<button
 												disabled={increment_loading}
-												onClick={() => { dispatch(Increment_into_Cart(item.id)).then(() => Updating()) }}
+												onClick={() => {
+													dispatch(Increment_into_Cart(item.id)).then(() => {
+														Updating()
+														setRices(prev => {
+															const newState = { ...prev }
+															delete newState[item.id]
+															return newState
+														})
+													}), setRices({ ...price_loaded, [item.id]: true })
+												}}
 												className='flex items-center justify-center z-40 size-[30px] active:bg-red-500 rounded-r-lg group active:text-white py-6 border-l-2 border-gray-300 dark:border-gray-700 relative'
 											>{
-													increment_loading ? <LoadingOutlined spin /> : <>
+													increment_loading && price_loaded[item.id] ? <LoadingOutlined spin /> : <>
 														<div className='w-[2px] absolute h-4 group-active:bg-white bg-black dark:bg-white' />
 														<div className='w-4 h-[2px] group-active:bg-white bg-black dark:bg-white' />
 													</>
@@ -103,11 +119,12 @@ const Cart = () => {
 											<button
 												onClick={(e) => {
 													e.stopPropagation()
-													!delete_loading && dispatch(Delete_from_Cart(item.id)).then(() => Updating())
+													setDels({ ...dels_loaded, [item.product.id]: true })
+													!delete_loading && dispatch(Delete_from_Cart(item.id)).then(() => { Updating(), delete dels_loaded[item.product.id] })
 												}}
 												className='hidden size-5 md:flex items-center justify-center rounded-full hover:scale-125 transition-all duration-300 text-white bg-red-500 hover:bg-red-600'
 											>
-												{delete_loading ? <LoadingOutlined spin /> : "X"}
+												{delete_loading && dels_loaded[item.product.id] ? <LoadingOutlined spin /> : "X"}
 											</button>
 										</div>
 									</div>
@@ -115,11 +132,12 @@ const Cart = () => {
 									<button
 										onClick={(e) => {
 											e.stopPropagation()
-											!delete_loading && dispatch(Delete_from_Cart(item.id)).then(() => Updating())
+											setDels({ ...dels_loaded, [item.product.id]: true })
+											!delete_loading && dispatch(Delete_from_Cart(item.id)).then(() => { Updating(), delete dels_loaded[item.product.id] })
 										}}
 										className='absolute z-10 md:hidden right-0 size-5 flex items-center justify-center rounded-full hover:scale-125 transition-all duration-300 text-white top-0 bg-red-500 hover:bg-red-600'
 									>
-										{delete_loading ? <LoadingOutlined spin /> : "X"}
+										{delete_loading && dels_loaded[item.product.id] ? <LoadingOutlined spin /> : "X"}
 									</button>
 								</div>
 							))

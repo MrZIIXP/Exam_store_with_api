@@ -1,5 +1,4 @@
 import { ArrowLeftOutlined, ArrowRightOutlined, ArrowUpOutlined, CheckCircleOutlined, HeartFilled, HeartOutlined, LoadingOutlined } from '@ant-design/icons'
-import { useAtom } from 'jotai'
 import { Eye, Headphones, Search, ShieldCheck, Truck } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
@@ -7,9 +6,8 @@ import "swiper/css/pagination"
 import { Autoplay, Navigation, Pagination } from "swiper/modules"
 import { Swiper, SwiperSlide } from 'swiper/react'
 import "swiper/swiper-bundle.css"
-import { Account, Favorite } from '../jotai/Acc'
 import { useDispatch, useSelector } from 'react-redux'
-import { _set_category, Add_to_Cart, Get_Category, Get_Cart, Get_product } from '../redux/Api'
+import { _set_category, Add_to_Cart, Get_Category, Get_Cart, Get_product, _toggle_favourite } from '../redux/Api'
 import { notification } from 'antd'
 
 export function MinCard({ text, button, className, func, disable = false }) {
@@ -47,31 +45,18 @@ export function MinCard({ text, button, className, func, disable = false }) {
 
 export function ProductCard({ product }) {
   const dispatch = useDispatch()
-  const { add_cart_load } = useSelector(state => state.Market)
-  const [favo, setFavo] = useAtom(Favorite)
+  const { account: acc, add_cart_load, favourite: favo } = useSelector(state => state.Market)
   const [clicked, setClick] = useState(false)
   const isFavorite = favo?.some((item) => item.id === product.id)
-  const [acc] = useAtom(Account)
-  const handleToggleFavorite = () => {
-    setFavo((prev) => {
-      const isAlreadyFavorite = prev?.some(item => item.id === product.id)
-      const newFavo = isAlreadyFavorite
-        ? prev.filter(item => item.id !== product.id)
-        : [...prev, { productName: product.productName, id: product.id }]
-      localStorage.setItem("favorite", JSON.stringify(newFavo))
-      return newFavo
-    })
-  }
 
-  useEffect(() => {
-    const savedFavo = JSON.parse(localStorage.getItem('favorite')) || []
-    setFavo(savedFavo)
-  }, [])
+  const handleToggleFavorite = () => {
+    dispatch(_toggle_favourite({ id: product.id, productName: product.productName, fav: isFavorite }))
+  }
 
   return (<div className="bg-white dark:bg-black transition-all transform-gpu dark:border dark:border-white dark:p-5 dark:rounded-xl duration-300">
     <div className="relative bg-[#F5F5F5] p-5 rounded-lg overflow-hidden">
       <img
-        src={"http://37.27.29.18:8002/images/" + product.image}
+        src={import.meta.env.VITE_API_BASE_URL + "images/" + product.image}
         onError={(e) => { e.target.src = "/images/image.png" }}
         alt={product.productName}
         className="w-full h-[250px] object-center object-contain md:object-contain mix-blend-multiply dark:mix-blend-multiply"
@@ -142,10 +127,50 @@ const Home = () => {
       return `<span class="${className} custom-swiper-bullet" style="width: 15px; height: 15px; border-radius: 50%; background-color: white; display: inline-block; margin: 0 4px;"></span>`
     }
   }
-  const [acc] = useAtom(Account)
-  const { data_category: categoruies, category_loading, product_loading, error, data_products } = useSelector(state => state.Market)
+  const { data_category: categoruies, account: acc, category_loading, product_loading, error, data_products } = useSelector(state => state.Market)
   const dispatch = useDispatch()
   const navigator = useNavigate()
+
+  const [timeLeft, setTimeLeft] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0
+  })
+
+  const check = () => {
+    if (!localStorage.getItem("time")) {
+      const targetDate = new Date()
+      targetDate.setDate(targetDate.getDate() + 3)
+      localStorage.setItem("time", targetDate)
+    }
+  }
+
+  useEffect(() => {
+    check()
+    const calculateTimeLeft = () => {
+      const targetDate = new Date(localStorage.getItem("time")).getTime() || new Date().setDate(new Date().getDate() + 3)
+      const now = new Date().getTime()
+      const difference = targetDate - now
+
+      if (difference > 0) {
+        setTimeLeft({
+          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+          minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
+          seconds: Math.floor((difference % (1000 * 60)) / 1000)
+        })
+      }
+      else {
+        localStorage.removeItem("time")
+        check()
+      }
+    }
+
+    calculateTimeLeft()
+    const timer = setInterval(calculateTimeLeft, 1000)
+    return () => clearInterval(timer)
+  }, [])
 
   useEffect(() => {
     if (acc) {
@@ -207,10 +232,10 @@ const Home = () => {
               <p>Seconds</p>
             </div>
             <div className='text-[24px] md:text-[32px] text-[#E07575] flex justify-between'>
-              <p className='text-black dark:text-white'>03</p>:
-              <p className='text-black dark:text-white'>23</p>:
-              <p className='text-black dark:text-white'>19</p>:
-              <p className='text-black dark:text-white'>56</p>
+              <p className='text-black dark:text-white'>{timeLeft.days}</p>:
+              <p className='text-black dark:text-white'>{timeLeft.hours}</p>:
+              <p className='text-black dark:text-white'>{timeLeft.minutes}</p>:
+              <p className='text-black dark:text-white'>{timeLeft.seconds}</p>
             </div>
           </div>
 
@@ -301,7 +326,7 @@ const Home = () => {
               navigator(`/products`)
             }} className='p-3'>
               <div className='flex flex-col items-center group text-center hover:scale-110 transition-all duration-300 justify-center min-h-[145px] min-w-[170px] border-2 rounded-lg hover:bg-[#DB4444] hover:text-white gap-2 border-gray-200 dark:border-gray-800 text-black dark:text-white'>
-                <p className='scale-120 dark:invert group-hover:invert'><img src={"http://37.27.29.18:8002/images/" + product.categoryImage} alt="" /></p>
+                <p className='scale-120 dark:invert group-hover:invert'><img src={import.meta.env.VITE_API_BASE_URL + "images/" + product.categoryImage} alt="" /></p>
                 <p>{product.categoryName}</p>
               </div>
             </SwiperSlide>
@@ -363,19 +388,19 @@ const Home = () => {
 
         <div className="flex gap-2">
           <div className='size-[62px] rounded-full flex items-center flex-col leading-[0px] pb-2 scale-[0.8] justify-center bg-white text-black'>
-            <p className='font-bold text-lg'>23</p>
+            <p className='font-bold text-lg'>{timeLeft.days}</p>
             <p className='text-sm'>Hours</p>
           </div>
           <div className='size-[62px] rounded-full flex items-center flex-col leading-[0px] pb-2 scale-[0.8] justify-center bg-white text-black'>
-            <p className='font-bold text-lg'>05</p>
+            <p className='font-bold text-lg'>{timeLeft.hours}</p>
             <p className='text-sm'>Days</p>
           </div>
           <div className='size-[62px] rounded-full flex items-center flex-col leading-[0px] pb-2 scale-[0.8] justify-center bg-white text-black'>
-            <p className='font-bold text-lg'>59</p>
+            <p className='font-bold text-lg'>{timeLeft.minutes}</p>
             <p className='text-sm'>Minutes</p>
           </div>
           <div className='size-[62px] rounded-full flex items-center flex-col leading-[0px] pb-2 scale-[0.8] justify-center bg-white text-black'>
-            <p className='font-bold text-lg'>35</p>
+            <p className='font-bold text-lg'>{timeLeft.seconds}</p>
             <p className='text-sm'>Seconds</p>
           </div>
         </div>
