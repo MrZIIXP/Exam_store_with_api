@@ -53,14 +53,11 @@ export default {
     		}
     	},
     	screens: {
-			sm: {
-				max: "767px"
-			},
     		md: {
     			max: '1023px'
     		},
 			lg: {
-				min: "1024px"
+				min: "1024px",
 			}
     	}
     },

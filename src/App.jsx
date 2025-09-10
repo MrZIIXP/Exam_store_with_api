@@ -17,6 +17,9 @@ import AdminUsers from './components/AdmiUser'
 import AdminLayout from './components/AdminLayout'
 import AdminDashboard from './components/AdminDashboard'
 import AdminProducts from './components/AdminProducts'
+import AdminLog from './components/AdminLog'
+import AdminAddProduct from './components/AdminAddProduct'
+import AdminOther from './components/AdminOther'
 
 const App = () => {
 	const router = createBrowserRouter([{
@@ -71,27 +74,40 @@ const App = () => {
 				path: "account",
 				element: <Account />
 			},
+
+		]
+	},
+	{
+		path: "/admin/login",
+		element: <AdminLog />
+	},
+	{
+		path: "/admin/",
+		element: <AdminLayout />,
+		children: [
 			{
-				path: "admin/",
-				element: <AdminLayout />,
-				children: [
-					{
-						index: true,
-						element: <AdminDashboard />
-					},
-					{
-						path: "users",
-						element: <AdminUsers />
-					},
-					{
-						path: "*",
-						element: <Error />
-					},
-					{
-						path: "products",
-						element: <AdminProducts/>
-					}
-				]
+				index: true,
+				element: < AdminDashboard />
+			},
+			{
+				path: "orders",
+				element: <AdminUsers />
+			},
+			{
+				path: "*",
+				element: <Error />
+			},
+			{
+				path: "products",
+				element: <AdminProducts />
+			},
+			{
+				path: "products/add_new_product",
+				element: <AdminAddProduct/>
+			},
+			{
+				path: "other",
+				element: <AdminOther/>
 			}
 		]
 	}

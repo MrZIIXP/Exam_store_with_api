@@ -86,8 +86,8 @@ const Account = () => {
 					<Link to="/" className='text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors duration-300'>Home</Link> / <span className='text-black dark:text-white'>Contact</span>
 				</p>
 
-				<div className="flex gap-8">
-					<div className="w-64 flex-shrink-0">
+				<div className="flex gap-8 md:flex-col">
+					<div className="w-64 flex-shrink-0 md:w-full">
 						<div className="bg-white dark:bg-gray-900 rounded-lg p-6">
 							<h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4 text-base">Manage My Account</h3>
 							<ul className="space-y-2 mb-6 pl-7">
@@ -113,7 +113,7 @@ const Account = () => {
 							<div className='flex gap-5 items-center mb-5'>
 								<Image
 									className='rounded-full object-contain border-2'
-									width={60}
+									width={70}
 									height={60}
 									src={imagePreview || import.meta.env.VITE_API_BASE_URL + "images/" + user?.image}
 								/>
@@ -131,7 +131,7 @@ const Account = () => {
 
 							<form onSubmit={handleSubmit(onSubmit)} id="edit" className="space-y-8 flex flex-col">
 								<div>
-									<div className="grid grid-cols-2 gap-5 mb-6">
+									<div className="grid grid-cols-2 md:grid-cols-1 md:gap-7 gap-5 mb-6">
 										<div>
 											<div className={`border rounded h-14 relative ${errors.FirstName ? "border-red-500" : "border-gray-300"}`}>
 												<input
@@ -165,7 +165,7 @@ const Account = () => {
 										</div>
 									</div>
 
-									<div className="grid grid-cols-2 gap-5">
+									<div className="grid grid-cols-2 md:grid-cols-1 md:gap-7 gap-5">
 										<div>
 											<div className={`border rounded h-14 relative ${errors.Email ? "border-red-500" : "border-gray-300"}`}>
 												<input

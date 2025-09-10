@@ -156,12 +156,113 @@ export const get_roles = createAsyncThunk('Market/get_roles', async () => {
 
 export const add_role = createAsyncThunk(
 	'Market/add_role',
-	async (id, RoleId) => {
+	async ({ id, RoleId }) => {
 		await API.post(
 			`UserProfile/addrole-from-user?UserId=${id}&RoleId=${RoleId}`
 		)
 	}
 )
+export const del_role = createAsyncThunk(
+	'Market/del_role',
+	async ({ id, RoleId }) => {
+		await API.delete(
+			`UserProfile/remove-role-from-user?UserId=${id}&RoleId=${RoleId}`
+		)
+	}
+)
+
+export const Edit_product = createAsyncThunk(
+	'Market/Edit_product',
+	async data => {
+		if(data.hasDiscount){
+			await API.put(
+				`Product/update-product?Id=${data.id}&BrandId=${data.brandId}&ColorId=${data.colorId}&ProductName=${data.productName}&Description=${data.description}&DiscountPrice=${data.discountPrice}&Quantity=${data.quantity}&Code=${data.code}&Price=${data.price}&HasDiscount=${data.hasDiscount}&SubCategoryId=${data.subCategoryId}`
+			)
+		}else{
+			await API.put(
+				`Product/update-product?Id=${data.id}&BrandId=${data.brandId}&ColorId=${data.colorId}&ProductName=${data.productName}&Description=${data.description}&Quantity=${data.quantity}&Code=${data.code}&Price=${data.price}&SubCategoryId=${data.subCategoryId}`
+			)
+		}
+	}
+)
+
+export const Add_Category = createAsyncThunk(
+	'Market/Add_Category',
+	async formData => {
+		const { data } = await API.post('Category/add-category', formData, {
+			headers: { 'Content-Type': 'multipart/form-data' },
+		})
+		return data.data
+	}
+)
+
+export const Edit_Category = createAsyncThunk(
+	'Market/Edit_Category',
+	async formData => {
+		const { data } = await API.put('Category/update-category', formData, {
+			headers: { 'Content-Type': 'multipart/form-data' },
+		})
+		return data.data
+	}
+)
+
+export const Del_Category = createAsyncThunk(
+	'Market/Del_Category',
+	async id => {
+		await API.delete(`Category/delete-category?id=${id}`)
+		return id
+	}
+)
+
+export const Add_Brand = createAsyncThunk(
+	'Market/Add_Brand',
+	async brandData => {
+		const { data } = await API.post(
+			`Brand/add-brand?BrandName=${brandData}`
+		)
+		return data.data
+	}
+)
+
+export const Edit_Brand = createAsyncThunk(
+	'Market/Edit_Brand',
+	async brandData => {
+		const { data } = await API.put(
+			`Brand/update-brand?Id=${brandData.id}&BrandName=${brandData.brandName}`
+		)
+		return data.data
+	}
+)
+
+export const Del_Brand = createAsyncThunk('Market/Del_Brand', async id => {
+	await API.delete(`Brand/delete-brand?id=${id}`)
+	return id
+})
+
+export const Add_Feature = createAsyncThunk(
+	'Market/Add_Feature',
+	async featureData => {
+		const { data } = await API.post(
+			`SubCategory/add-sub-category?CategoryId=${featureData.categoryId}&SubCategoryName=${featureData.subCategoryName}`
+		)
+		return data.data
+	}
+)
+
+export const Edit_Feature = createAsyncThunk(
+	'Market/Edit_Feature',
+	async featureData => {
+		const { data } = await API.put(
+			`SubCategory/update-sub-category?Id=${featureData.id}&CategoryId=${featureData.categoryId}&SubCategoryName=${featureData.subCategoryName}`
+		)
+		return data.data
+	}
+)
+
+export const Del_Feature = createAsyncThunk('Market/Del_Feature', async id => {
+	await API.delete(`SubCategory/delete-sub-category?id=${id}`)
+	return id
+})
 
 export const MarketApi = createSlice({
 	name: 'Market',
@@ -180,6 +281,13 @@ export const MarketApi = createSlice({
 		set_product: null,
 		set_feature: null,
 		set_profile: null,
+
+		prof_search: "",
+		prod_search: "",
+
+		category_ops_loading: false,
+		brand_ops_loading: false,
+		feature_ops_loading: false,
 
 		data_profile: {},
 		data_users: [],
@@ -212,6 +320,9 @@ export const MarketApi = createSlice({
 		error: null,
 	},
 	reducers: {
+		prof: state => {
+			state.prod_search = null
+		},
 		account_reset: state => {
 			state.account = null
 		},
@@ -257,6 +368,111 @@ export const MarketApi = createSlice({
 	},
 	extraReducers: build => {
 		build
+			.addCase(Add_Category.pending, state => {
+				state.category_ops_loading = true
+			})
+			.addCase(Add_Category.fulfilled, state => {
+				state.category_ops_loading = false
+			})
+			.addCase(Add_Category.rejected, (state, action) => {
+				state.category_ops_loading = false
+				state.error = action.error.message
+			})
+
+			.addCase(Add_Brand.pending, state => {
+				state.brand_ops_loading = true
+			})
+			.addCase(Add_Brand.fulfilled, state => {
+				state.brand_ops_loading = false
+			})
+			.addCase(Add_Brand.rejected, (state, action) => {
+				state.brand_ops_loading = false
+				state.error = action.error.message
+			})
+
+			.addCase(Add_Feature.pending, state => {
+				state.feature_ops_loading = true
+			})
+			.addCase(Add_Feature.fulfilled, state => {
+				state.feature_ops_loading = false
+			})
+			.addCase(Add_Feature.rejected, (state, action) => {
+				state.feature_ops_loading = false
+				state.error = action.error.message
+			})
+
+			.addCase(Edit_Category.pending, state => {
+				state.category_ops_loading = true
+				state.error = null
+			})
+			.addCase(Edit_Category.fulfilled, state => {
+				state.category_ops_loading = false
+			})
+			.addCase(Edit_Category.rejected, (state, action) => {
+				state.category_ops_loading = false
+				state.error = action.error.message
+			})
+
+			.addCase(Edit_Brand.pending, state => {
+				state.brand_ops_loading = true
+				state.error = null
+			})
+			.addCase(Edit_Brand.fulfilled, state => {
+				state.brand_ops_loading = false
+			})
+			.addCase(Edit_Brand.rejected, (state, action) => {
+				state.brand_ops_loading = false
+				state.error = action.error.message
+			})
+
+			.addCase(Edit_Feature.pending, state => {
+				state.feature_ops_loading = true
+				state.error = null
+			})
+			.addCase(Edit_Feature.fulfilled, state => {
+				state.feature_ops_loading = false
+			})
+			.addCase(Edit_Feature.rejected, (state, action) => {
+				state.feature_ops_loading = false
+				state.error = action.error.message
+			})
+
+			.addCase(Del_Category.pending, state => {
+				state.category_ops_loading = true
+				state.error = null
+			})
+			.addCase(Del_Category.fulfilled, state => {
+				state.category_ops_loading = false
+			})
+			.addCase(Del_Category.rejected, (state, action) => {
+				state.category_ops_loading = false
+				state.error = action.error.message
+			})
+
+			.addCase(Del_Brand.pending, state => {
+				state.brand_ops_loading = true
+				state.error = null
+			})
+			.addCase(Del_Brand.fulfilled, state => {
+				state.brand_ops_loading = false
+			})
+			.addCase(Del_Brand.rejected, (state, action) => {
+				state.brand_ops_loading = false
+				state.error = action.error.message
+			})
+
+			.addCase(Del_Feature.pending, state => {
+				state.feature_ops_loading = true
+				state.error = null
+			})
+			.addCase(Del_Feature.fulfilled, state => {
+				state.feature_ops_loading = false
+			})
+			.addCase(Del_Feature.rejected, (state, action) => {
+				state.feature_ops_loading = false
+				state.error = action.error.message
+			})
+
 			.addCase(Get_product.pending, state => {
 				state.product_loading = true
 				state.error = null

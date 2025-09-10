@@ -1,30 +1,28 @@
 import { HeartOutlined, SendOutlined, ShoppingCartOutlined } from '@ant-design/icons'
-import { Drawer, Tooltip } from 'antd'
-import { BookTextIcon, Facebook, Instagram,PanelLeft, Linkedin, LogOut, Menu, MessageCircleWarning, Search, TwitterIcon, User } from 'lucide-react'
+import { Drawer, Image, Tooltip } from 'antd'
+import { BookTextIcon, Facebook, Instagram, PanelLeft, Linkedin, LogOut, Menu, MessageCircleWarning, Search, TwitterIcon, User } from 'lucide-react'
 import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { _fav_reset, _set_massanges, _set_unreaded_message, account_reset, Get_Cart, Get_profile } from '../redux/Api'
+import { _fav_reset, _set_massanges, _set_unreaded_message, account_reset, Get_Cart, Get_product, Get_profile } from '../redux/Api'
 import ThemeToggleButton from './DarkMode'
 
 export default function Layout() {
 	const [open, setOpen] = React.useState(false)
 	const [onPage, setPage] = React.useState("")
-	const { account: acc, data_cart, favourite: fav, messages, unreaded_message, data_profile } = useSelector(state => state.Market)
+	const { account: acc, data_cart, favourite: fav, messages, data_products, unreaded_message, data_profile } = useSelector(state => state.Market)
 	const dispatch = useDispatch()
 	const navigator = useNavigate()
 	const [read, setRead] = React.useState(false)
 	const location = useLocation()
-
+	const [inputing, setInputing] = React.useState("")
 
 	useEffect(() => {
 		setPage(location.pathname)
+		dispatch(Get_product())
 		if (acc) {
 			dispatch(Get_Cart())
 			dispatch(Get_profile(localStorage.getItem("user")))
-			if (data_profile) {
-				console.log(data_profile)
-			}
 		}
 	}, [onPage, location])
 
@@ -78,13 +76,18 @@ export default function Layout() {
 				</nav>
 
 				<div className='flex items-center gap-3'>
-					<div className="relative w-full max-w-sm md:hidden">
+					<div className={`relative w-full ${location.pathname === "/products" ? "hidden" : "block"} max-w-sm md:hidden`}>
 						<input
 							type="text"
+							onInput={(e) => setInputing(e.target.value)}
+							value={inputing}
 							placeholder="What are you looking for?"
 							className="w-full py-2.5 pl-4 pr-4 rounded-md bg-gray-100 dark:bg-gray-900 text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400 placeholder:text-[13px] focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-500 border border-gray-300 dark:border-gray-700"
 						/>
 						<Search className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 pointer-events-none" />
+						{inputing && <div style={{scrollbarColor: "transparent transparent"}} className="absolute p-2 top-12 flex flex-col gap-2 left-0 max-h-72 overflow-y-auto w-full bg-white z-30 dark:bg-gray-900 border dark:border-white border-black">
+							{data_products?.products?.filter(item => item.productName.toLowerCase().includes(inputing.toLowerCase())).map(item => <div className='w-full min-h-12 flex item-center gap-3 border-black border px-2'><Image height={36} width={40} className='bg-white object-contain' src={import.meta.env.VITE_API_BASE_URL + "images/" + item.image}/> <p className='text-black dark:text-white'>{item.productName}</p></div>)}
+						</div>}
 					</div>
 
 					<Link to={"/favourite"} className='relative md:hidden'>
@@ -108,7 +111,7 @@ export default function Layout() {
 									<button className='flex gap-3 text-[17px] items-center text-white hover:text-red-500 dark:hover:text-red-500'>
 										<BookTextIcon /> My Order
 									</button>
-									{data_profile && !data_profile?.userRoles?.some(item => item.name === "User") && <button className='flex gap-3 text-[17px] items-center text-white hover:text-red-500 dark:hover:text-red-500' onClick={() => { navigator("/admin"), setOpen(false) }}><PanelLeft /> Admin</button>}
+									{data_profile && data_profile?.userRoles?.some(item => item.name === "Admin") && <button className='flex gap-3 text-[17px] items-center text-white hover:text-red-500 dark:hover:text-red-500' onClick={() => { navigator("/admin/login"), setOpen(false) }}><PanelLeft /> Admin</button>}
 									<Link to={"/favourite"} className='gap-3 text-[17px] items-center text-white hover:text-red-500 dark:hover:text-red-500 hidden md:flex'>
 										<button className='relative'>
 											<HeartOutlined className='text-[20px]' />

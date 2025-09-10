@@ -164,7 +164,7 @@ const Cart = () => {
 							Update Cart
 						</button>
 						<button
-							onClick={() => { data?.productsInCart?.length > 0 && dispatch(Delete_All_from_Cart()) }}
+							onClick={async () => { data?.productsInCart?.length > 0 && dispatch(Delete_All_from_Cart()).then(() => Updating()) }}
 							className='py-4 md:hidden px-[30px] min-w-[200px] hover:scale-105 dark:hover:bg-red-500 dark:hover:text-white text-center ml-3 md:ml-0 border-2 border-red-500 text-red-500 dark:text-red-400 rounded-md bg-white dark:bg-gray-900 hover:bg-red-500 hover:text-white transition-all duration-300'
 						>
 							Remove all
@@ -177,7 +177,7 @@ const Cart = () => {
 								<RotateCcw />
 							</button>
 							<button
-								onClick={() => { data?.productsInCart?.length > 0 && dispatch(Delete_All_from_Cart()) }}
+								onClick={async () => { data?.productsInCart?.length > 0 && dispatch(Delete_All_from_Cart()).then(() => Updating()) }}
 								className='hidden md:inline hover:scale-105 text-center ml-auto md:ml-0 text-red-500 transition-all duration-300'
 							>
 								<Trash2 />
